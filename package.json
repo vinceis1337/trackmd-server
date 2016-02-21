@@ -5,9 +5,7 @@
   "main": "server.js",
   "dependencies": {
     "express": "^4.13.4",
-    "mongodb": "^2.1.7",
-    "optimist": "^0.6.1",
-    "require": "^2.4.20"
+    "mongodb": "^2.1.7"
   },
   "devDependencies": {},
   "scripts": {
