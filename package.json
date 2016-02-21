@@ -1,0 +1,24 @@
+{
+  "name": "trackmd-server",
+  "version": "0.0.1",
+  "description": "Backend Server that communicates with MongoDB to handle session management.",
+  "main": "server.js",
+  "dependencies": {
+    "express": "^4.13.4",
+    "mongodb": "^2.1.7"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vinceis1337/trackmd-server.git"
+  },
+  "author": "Jon Hsu-Kei",
+  "bugs": {
+    "url": "https://github.com/vinceis1337/trackmd-server/issues"
+  },
+  "homepage": "https://github.com/vinceis1337/trackmd-server#readme"
+}

@@ -6,186 +6,201 @@ var MongoClient = require('mongodb').MongoClient;
 var ObjectId = require('mongodb').ObjectID;
 var assert = require('assert');
 var url = 'mongodb://localhost:27017/test';
+var database_util = require('./database_logic');
 
-MongoClient.connect(url, function(err, db) {
-    assert.equal(null, err);
-    setUpSession(db, function(){
-        db.close();
-    });
-});
+//Static Table Names
+var AUTH_USERS_TABLE = 'authorized_users_table';
+var INVENTORY_TABLE = 'inventory_table';
+var PATIENT_TABLE = 'patient_table';
+var READER_TABLE = 'reader_table';
+var SESSION_TABLE = 'session_table';
 
-MongoClient.connect(url, function(err, db) {
-    assert.equal(null, err);
-    setUpPatient(db, function(){
-        db.close();
-    });
-});
+//Static Init Data
+var AUTH_USERS_DATA = [
+    {
+        "authorized_user": {
+            "user_uuid": "896b677f-fb14-11e0-b14d-d11ca798dbac",
+            "first_name": "Ronking",
+            "last_name": "Doctorman",
+            "occupation": "Doctor of Internal Medicine",
+            "gender": "female",
+            "rfid": "c2f5ccec"
 
-MongoClient.connect(url, function(err, db) {
-    assert.equal(null, err);
-    setUpReader(db, function(){
-        db.close();
-    });
-});
-
-MongoClient.connect(url, function(err, db) {
-    assert.equal(null, err);
-    setUpItems(db, function(){
-        db.close();
-    });
-});
-
-MongoClient.connect(url, function(err, db) {
-    assert.equal(null, err);
-    setUpAuthorizedUsers(db, function(){
-        db.close();
-    });
-});
-
-
-
-var setUpSession = function(db, callback) {
-    db.collection('session_table').insertOne( {
-        "session": {
-            "authorized_users": [
-                {
-                    "user_uuid": "896b677f-fb14-11e0-b14d-d11ca798dbac"
-                },
-                {
-                    "user_uuid": "asffdasd-fb14-11e0-b14d-d11ca798dbad"
-                },
-                {
-                    "user_uuid": "sdfsdfsf-fb14-11e0-b14d-d11ca798dbae"
-                }
-            ],
-            "patient_users": [
-                {
-                    "user_uuid": "12345678-fb14-11e0-b14d-d11c9798dbaf"
-                }
-            ],
-            "actions_log": [
-                {
-                }
-            ],
-            "taken": [
-                {
-                    "item_uuid": "bbbbbbbb-fb14-11e0-b14d-d11ca798dbac"
-                }
-            ]
         }
-    }, function(err, result) {
-        assert.equal(err, null);
-        console.log("Inserted a document into the session_table collection.");
-        callback();
-    });
-};
-
-var setUpPatient = function(db, callback) {
-    db.collection('patient_table').insertOne( {
-        "patient": {
-            "user_uuid": "12345678-fb14-11e0-b14d-d11c9798dbaf",
-            "first_name": "Ray",
-            "last_name": "Sunbo",
-            "age": "30",
+    },
+    {
+        "authorized_user": {
+            "user_uuid": "RONLOLOLL-fb14-11e0-b14d-d11ca798dbac",
+            "first_name": "Nurse",
+            "last_name": "Ron",
+            "occupation": "Nurse Ronald",
             "gender": "male",
-            "rfid": "3295019250102"
+            "rfid": "3277aeec"
         }
-    }, function(err, result) {
-        assert.equal(err, null);
-        console.log("Inserted a document into the patient_table collection.");
-        callback();
-    });
+    }
+];
+var INVENTORY_DATA = [
+    {
+        "item": {
+            "item_uuid": "bbbbbbbb-fb14-11e0-b14d-d11ca798dbac",
+            "rfid": "3125512550102",
+            "description": "Surgical Clamp, Stainless Steel",
+            "single_use_only": false,
+            "status": "ready",
+            "timestamp": "2015-12-21T16:00:00"
+        }
+    },
+    {
+        "item": {
+            "item_uuid": "cccccccc-fb14-11e0-b14d-d11ca798dbac",
+            "rfid": "04ca6a32a03c80",
+            "description": "Scalpel, Stainless Steel",
+            "single_use_only": false,
+            "status": "ready",
+            "timestamp": "2015-12-21T16:00:00"
+        }
+    },
+    {
+        "item": {
+            "item_uuid": "dddddddd-fb14-11e0-b14d-d11ca798dbac",
+            "rfid": "04ab6a32a03c80",
+            "description": "Sponge, Spongeysponge",
+            "single_use_only": true,
+            "status": "ready",
+            "timestamp": "2015-12-21T16:00:00"
+        }
+    },
+    {
+        "item": {
+            "item_uuid": "eeeeeeee-fb14-11e0-b14d-d11ca798dbac",
+            "rfid": "04ee6a32a03c80",
+            "description": "Drill, Stainless Steel",
+            "single_use_only": false,
+            "status": "ready",
+            "timestamp": "2015-12-21T16:00:00"
+        }
+    }
+];
+var PATIENT_DATA = {
+    "patient": {
+        "user_uuid": "12345678-fb14-11e0-b14d-d11c9798dbaf",
+        "first_name": "Ray",
+        "last_name": "Sunbo",
+        "age": "30",
+        "gender": "male",
+        "rfid": "3295019250102"
+    }
 };
-
-var setUpReader = function(db, callback) {
-    db.collection('reader_table').insertOne( {
+var READER_DATA = [{
         "reader": {
             "device_uuid": "zzzzzzzz-fb14-11e0-b14d-d11ca798dbac",
             "room": "308",
             "description": "Surgery Room 308"
         }
-    }, function(err, result) {
-        assert.equal(err, null);
-        console.log("Inserted a document into the session_table collection.");
-        callback();
-    });
-};
-
-var setUpItems = function(db, callback) {
-    db.collection('inventory_table').insertMany([
-        {
-            "item": {
-                "item_uuid": "bbbbbbbb-fb14-11e0-b14d-d11ca798dbac",
-                "rfid": "3125512550102",
-                "description": "Surgical Clamp, Stainless Steel",
-                "single_use_only": false,
-                "status": "ready",
-                "timestamp": "2015-12-21T16:00:00"
-            }
-        },
-        {
-            "item": {
-                "item_uuid": "cccccccc-fb14-11e0-b14d-d11ca798dbac",
-                "rfid": "04ca6a32a03c80",
-                "description": "Scalpel, Stainless Steel",
-                "single_use_only": false,
-                "status": "ready",
-                "timestamp": "2015-12-21T16:00:00"
-            }
-        },
-        {
-            "item": {
-                "item_uuid": "dddddddd-fb14-11e0-b14d-d11ca798dbac",
-                "rfid": "04ab6a32a03c80",
-                "description": "Sponge, Spongeysponge",
-                "single_use_only": true,
-                "status": "ready",
-                "timestamp": "2015-12-21T16:00:00"
-            }
-        },
-        {
-            "item": {
-                "item_uuid": "eeeeeeee-fb14-11e0-b14d-d11ca798dbac",
-                "rfid": "04ee6a32a03c80",
-                "description": "Drill, Stainless Steel",
-                "single_use_only": false,
-                "status": "ready",
-                "timestamp": "2015-12-21T16:00:00"
-            }
+    },
+    {
+        "reader": {
+            "device_uuid": "yyyyyyyy-fb14-11e0-b14d-d11ca798dbac",
+            "room": "389423498",
+            "description": "Surgery Room 308"
         }
-    ], function(err, result) {
-        assert.equal(err, null);
-        console.log("Inserted a document into the inventory_table collection.");
-        callback();
-    });
+    }
+];
+var SESSION_DATA = {
+    "session": {
+        "authorized_users": [
+            {
+                "user_uuid": "896b677f-fb14-11e0-b14d-d11ca798dbac"
+            },
+            {
+                "user_uuid": "asffdasd-fb14-11e0-b14d-d11ca798dbad"
+            },
+            {
+                "user_uuid": "sdfsdfsf-fb14-11e0-b14d-d11ca798dbae"
+            }
+        ],
+        "patient_users": [
+            {
+                "user_uuid": "12345678-fb14-11e0-b14d-d11c9798dbaf"
+            }
+        ],
+        "actions_log": [
+            {}
+        ],
+        "taken": [
+            {
+                "item_uuid": "bbbbbbbb-fb14-11e0-b14d-d11ca798dbac"
+            }
+        ]
+    }
 };
 
-var setUpAuthorizedUsers = function(db, callback) {
-    db.collection('authorized_users_table').insertMany([
-        {
-            "authorized_user": {
-                "user_uuid": "896b677f-fb14-11e0-b14d-d11ca798dbac",
-                "first_name": "Ronking",
-                "last_name": "Doctorman",
-                "occupation": "Doctor of Internal Medicine",
-                "gender": "female",
-                "rfid": "c2f5ccec"
-
-            }
-        },
-        {
-            "authorized_user": {
-                "user_uuid": "RONLOLOLL-fb14-11e0-b14d-d11ca798dbac",
-                "first_name": "Nurse",
-                "last_name": "Ron",
-                "occupation": "Nurse Ronald",
-                "gender": "male",
-                "rfid": "3277aeec"
-            }
+//Set up Auth Users
+MongoClient.connect(url, function(err, db) {
+    assert.equal(null, err);
+    database_util.insertDocumentByTableAndManyData(db, AUTH_USERS_TABLE, AUTH_USERS_DATA, function(returnValue){
+        if (returnValue != null){
+            console.log(returnValue.result);
         }
-    ], function(err, result) {
-        assert.equal(err, null);
-        console.log("Inserted a document into the session_table collection.");
-        callback();
+        else if (returnValue == null){
+            console.log("WE FUCKED UP");
+        }
+        db.close();
     });
-};
+});
+
+//Set up Inventory
+MongoClient.connect(url, function(err, db) {
+    assert.equal(null, err);
+    database_util.insertDocumentByTableAndManyData(db, INVENTORY_TABLE, INVENTORY_DATA, function(returnValue){
+        if (returnValue != null){
+            console.log(returnValue.result);
+        }
+        else if (returnValue == null){
+            console.log("WE FUCKED UP");
+        }
+        db.close();
+    });
+});
+
+//Set Up Patient Data
+MongoClient.connect(url, function(err, db) {
+    assert.equal(null, err);
+    database_util.insertDocumentByTableAndSingleData(db, PATIENT_TABLE, PATIENT_DATA, function(returnValue){
+        if (returnValue != null){
+            console.log(returnValue.result);
+        }
+        else if (returnValue == null){
+            console.log("WE FUCKED UP");
+        }
+        db.close();
+    });
+});
+
+//Set up Reader Data
+MongoClient.connect(url, function(err, db) {
+    assert.equal(null, err);
+    database_util.insertDocumentByTableAndManyData(db, READER_TABLE, READER_DATA, function(returnValue){
+        if (returnValue != null){
+            console.log(returnValue.result);
+        }
+        else if (returnValue == null){
+            console.log("WE FUCKED UP");
+        }
+        db.close();
+    });
+});
+
+//Set up Session Table
+MongoClient.connect(url, function(err, db) {
+    assert.equal(null, err);
+    database_util.insertDocumentByTableAndSingleData(db, SESSION_TABLE, SESSION_DATA, function(returnValue){
+        if (returnValue != null){
+            console.log(returnValue.result);
+        }
+        else if (returnValue == null){
+            console.log("WE FUCKED UP");
+        }
+        db.close();
+    });
+});
