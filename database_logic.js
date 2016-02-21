@@ -5,6 +5,43 @@ var assert = require('assert');
 
 module.exports =
 {
+
+    //Generic
+    //PARAMS: db, table, key, value
+    //RETURNS: Document if found
+    //         NULL if not found
+    //         WILL ONLY RETURN 1 DOCUMENT
+    findAllDocumentsByTable: function (db, table, callback) {
+
+        var cursor = db.collection(table).find( );
+
+        var parseCollection = function() {
+            cursor.next(function(err, doc){
+                if (err)
+                    return console.error(err);
+                console.dir(doc);
+                callback(doc);
+                //hasNextCollection();
+            });
+        };
+
+        var hasNextCollection= function() {
+            cursor.hasNext(function(err, result){
+                if (err)
+                    return console.error(err);
+
+                if (result)
+                    parseCollection();
+                else {
+                    //Here is the last point of iterations
+                    //We can use this for statistics output
+                    callback(null);
+                }
+            });
+        };
+        hasNextCollection();
+    },
+
     //Generic
     //PARAMS: db, table, key, value
     //RETURNS: Document if found
@@ -13,7 +50,7 @@ module.exports =
     findDocumentByTableAndKeyAndValue: function (db, table, key, value, callback) {
         var query = {};
         query[key] = value;
-        console.log(query);
+        console.log('This is the query: ' + JSON.stringify(query));
 
         var cursor = db.collection(table).find(query);
 
@@ -22,7 +59,6 @@ module.exports =
                 if (err)
                     return console.error(err);
                 console.dir(doc);
-                shitFound = true;
                 callback(doc);
                 //hasNextCollection();
             });

@@ -14,8 +14,8 @@ var PATIENT_TABLE = 'patient_table';
 var READER_TABLE = 'reader_table';
 var SESSION_TABLE = 'session_table';
 
-var TEST_KEY = 'authorized_user.rfid';
-var TEST_GOOD_VALUE = 'c2f5ccec';
+var TEST_KEY = 'patient.first_name';
+var TEST_GOOD_VALUE = 'Ray';
 var TEST_BAD_VALUE = 'FUCKDAPOLICE';
 
 var TEST_UPDATE_KEY = 'authorized_user.first_name';
@@ -28,7 +28,7 @@ var TEST_DELETE_VALUE = '308';
 //Test Happy Path  for findDocumentByTableAndKeyAndValue
 MongoClient.connect(url, function (err, db) {
     assert.equal(null, err);
-    database_util.findDocumentByTableAndKeyAndValue(db, AUTH_USERS_TABLE, TEST_KEY, TEST_GOOD_VALUE, function (data) {
+    database_util.findDocumentByTableAndKeyAndValue(db, PATIENT_TABLE, TEST_KEY, TEST_GOOD_VALUE, function (data) {
         if (data != null){
             console.log("Test 1: Passed");
         }

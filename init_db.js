@@ -20,7 +20,7 @@ var AUTH_USERS_DATA = [
     {
         "authorized_user": {
             "user_uuid": "896b677f-fb14-11e0-b14d-d11ca798dbac",
-            "first_name": "Ronking",
+            "first_name": "John",
             "last_name": "Doctorman",
             "occupation": "Doctor of Internal Medicine",
             "gender": "female",
@@ -88,7 +88,7 @@ var PATIENT_DATA = {
         "last_name": "Sunbo",
         "age": "30",
         "gender": "male",
-        "rfid": "3295019250102"
+        "rfid": "72f5ccec"
     }
 };
 var READER_DATA = [{
