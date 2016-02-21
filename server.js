@@ -20,6 +20,10 @@ var PATIENT_TABLE = 'patient_table';
 var READER_TABLE = 'reader_table';
 var SESSION_TABLE = 'session_table';
 
+var SESSION_IDLE = true;
+var SESSION_LIVE = true;
+var SESSION_TAKE = true;
+
 
 //Work around to keep node from crashing. Will require a restart...maybe...idk...
 //TODO: Implement that DOMAIN/Cluster pattern detailed here.
@@ -39,33 +43,53 @@ app.post('/rfid', function (req, res){
    var currentRFID = req.body.rfid;
     console.log(currentRFID);
 
-    MongoClient.connect(url, function(err, db) {
-        assert.equal(null, err);
-        findDocumentByTableAndRFID(db, AUTH_USERS_TABLE, currentRFID, function() {
-            db.close();
+    if(SESSION_IDLE) {
+        MongoClient.connect(url, function (err, db) {
+            assert.equal(null, err);
+            findDocumentByTableAndRFID(db, AUTH_USERS_TABLE, currentRFID, function (data) {
+                db.close();
+                respondToIoTDevice(data);
+            });
         });
-    });
-    res.sendStatus(200);
+    }
+    else if (!SESSION_IDLE){
+        console.log("Auth USER Needed to start Session");
+    }
 });
 
-//Helper Method to get AuthUserByRFID
+function respondToIoTDevice(data) {
+    if (data.error) {
+        res.send(data.error);
+        return;
+    }
+    res.send(data.message);
+}
+
+//Helper method for checking if the RFID scanned is in the Auth User
 var findDocumentByTableAndRFID = function(db, table, rfid, callback) {
     var cursor =db.collection(table).find({"authorized_user.rfid" : rfid});
     cursor.each(function(err, doc) {
         assert.equal(err, null);
         if (doc == null) {
-            ""
+            console.log("No matching AuthUser RFID found");
+            //Send some error messaging to the Edison.
+
+            var data;
+            data.push({"error": "No matching AuthUser RFID found"});
+            callback(data);
         }
         if (doc != null) {
             console.dir(doc);
-            proccessAuthUsersReturnValues(doc);
+            processAuthUsersReturnValues(doc);
         } else {
             callback();
         }
     });
 };
 
-var proccessAuthUsersReturnValues = function(document){
+//If we found a matching Auth User
+//We now take that users user_uuid
+var processAuthUsersReturnValues = function(document){
     var authUserUuid = document.authorized_user.user_uuid;
     console.log('\nPLEASE GOD\n' + document.authorized_user.user_uuid);
     //Match User UUID to open Session
@@ -77,17 +101,23 @@ var proccessAuthUsersReturnValues = function(document){
     });
 };
 
+//We are verifying the Authorized User is in a valid Session
+//We do this by searching for the Auth User's user_uuid
+//If found set state to TAKE
 var findDocumentByTableAndUserUuid = function(db, table, user_uuid, callback) {
     var cursor =db.collection(table).find({"session.authorized_users.user_uuid" : user_uuid});
     cursor.each(function(err, doc) {
         assert.equal(err, null);
+        if(doc == null) {
+            console.log("user_uuid not found in valid sessions");
+            //Send Errors
+        }
         if (doc != null) {
             var jsonDoc = JSON.stringify(doc);
             console.dir(jsonDoc);
-            console.log('\n PLEASE GOD WORK PLEASE\n' + doc.session.taken[0].item_uuid);
-            //Do stuff here
+            //console.log('\n PLEASE GOD WORK PLEASE\n' + doc.session.taken[0].item_uuid);
+            //Change State to Take
         } else {
-            console.log('wat');
             callback();
         }
     });
