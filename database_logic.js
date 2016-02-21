@@ -89,12 +89,11 @@ module.exports =
         db.collection(table).deleteOne(
             query,
             function (err, results) {
-                if (err == null) {
-                    console.log(results);
+                if (results.result.n > 0) {
+                    console.log(results.result);
                     callback(true);
                 }
-                else if (err != null) {
-                    console.log(err);
+                else if (results.result.n == 0) {
                     callback(false);
                 }
             }

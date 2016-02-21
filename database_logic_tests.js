@@ -39,19 +39,19 @@ MongoClient.connect(url, function (err, db) {
     });
 });
 
-//Test Negative Path for findDocumentByTableAndKeyAndValue
-MongoClient.connect(url, function (err, db) {
-    assert.equal(null, err);
-    database_util.findDocumentByTableAndKeyAndValue(db, AUTH_USERS_TABLE, TEST_KEY, TEST_BAD_VALUE, function (data) {
-        if (data != null){
-            console.log("Test 2: Failed");
-        }
-        else if (data == null){
-            console.log("Test 2: Passed");
-        }
-        db.close();
-    });
-});
+////Test Negative Path for findDocumentByTableAndKeyAndValue
+//MongoClient.connect(url, function (err, db) {
+//    assert.equal(null, err);
+//    database_util.findDocumentByTableAndKeyAndValue(db, AUTH_USERS_TABLE, TEST_KEY, TEST_BAD_VALUE, function (data) {
+//        if (data != null){
+//            console.log("Test 2: Failed");
+//        }
+//        else if (data == null){
+//            console.log("Test 2: Passed");
+//        }
+//        db.close();
+//    });
+//});
 
 //Test Happy Path for updateDocumentByTableAndKeyAndValues
 MongoClient.connect(url, function (err, db) {
@@ -67,21 +67,22 @@ MongoClient.connect(url, function (err, db) {
     });
 });
 
-////Test Reverse Path for updateDocumentByTableAndKeyAndValues
-//MongoClient.connect(url, function (err, db) {
-//    assert.equal(null, err);
-//    database_util.updateDocumentByTableAndKeyAndValues(db, AUTH_USERS_TABLE, TEST_UPDATE_KEY, TEST_NEW_VALUE, TEST_PREVIOUS_VALUE, function (data) {
-//        if (data){
-//            console.log("Test 4: Passed");
-//        }
-//        else if (!data) {
-//            console.log("Test 4: Failed");
-//        }
-//        db.close();
-//    });
-//});
+//Test Reverse Path for updateDocumentByTableAndKeyAndValues
+MongoClient.connect(url, function (err, db) {
+    assert.equal(null, err);
+    database_util.updateDocumentByTableAndKeyAndValues(db, AUTH_USERS_TABLE, TEST_UPDATE_KEY, TEST_NEW_VALUE, TEST_PREVIOUS_VALUE, function (data) {
+        if (data){
+            console.log("Test 4: Passed");
+        }
+        else if (!data) {
+            console.log("Test 4: Failed");
+        }
+        db.close();
+    });
+});
 
 //removeDocumentByTableAndKeyAndValue
+//Need to run INIT_DB script for test to work
 MongoClient.connect(url, function (err, db) {
     assert.equal(null, err);
     database_util.removeDocumentByTableAndKeyAndValue(db, READER_TABLE, TEST_DELETE_KEY, TEST_DELETE_VALUE, function (data) {
