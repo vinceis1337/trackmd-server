@@ -3,9 +3,22 @@
  */
 
 var express = require('express'),
+    bodyParser = require('body-parser'),
     fs = require('fs');
 
 var app = express();
+var MongoClient = require('mongodb').MongoClient;
+var ObjectId = require('mongodb').ObjectID;
+var assert = require('assert');
+var url = 'mongodb://localhost:27017/test';
+
+app.use( bodyParser.json() );
+
+var AUTH_USERS_TABLE = 'authorized_users_table';
+var INVENTORY_TABLE = 'inventory_table';
+var PATIENT_TABLE = 'patient_table';
+var READER_TABLE = 'reader_table';
+var SESSION_TABLE = 'session_table';
 
 
 //Work around to keep node from crashing. Will require a restart...maybe...idk...
@@ -21,6 +34,64 @@ process.on('uncaughtException', function (error) {
 app.get('/', function (req, res) {
     res.send('HELLO WORLD');
 });
+
+app.post('/rfid', function (req, res){
+   var currentRFID = req.body.rfid;
+    console.log(currentRFID);
+
+    MongoClient.connect(url, function(err, db) {
+        assert.equal(null, err);
+        findDocumentByTableAndRFID(db, AUTH_USERS_TABLE, currentRFID, function() {
+            db.close();
+        });
+    });
+    res.sendStatus(200);
+});
+
+//Helper Method to get AuthUserByRFID
+var findDocumentByTableAndRFID = function(db, table, rfid, callback) {
+    var cursor =db.collection(table).find({"authorized_user.rfid" : rfid});
+    cursor.each(function(err, doc) {
+        assert.equal(err, null);
+        if (doc == null) {
+            ""
+        }
+        if (doc != null) {
+            console.dir(doc);
+            proccessAuthUsersReturnValues(doc);
+        } else {
+            callback();
+        }
+    });
+};
+
+var proccessAuthUsersReturnValues = function(document){
+    var authUserUuid = document.authorized_user.user_uuid;
+    console.log('\nPLEASE GOD\n' + document.authorized_user.user_uuid);
+    //Match User UUID to open Session
+    MongoClient.connect(url, function(err, db) {
+        assert.equal(null, err);
+        findDocumentByTableAndUserUuid(db, SESSION_TABLE, authUserUuid, function() {
+            db.close();
+        });
+    });
+};
+
+var findDocumentByTableAndUserUuid = function(db, table, user_uuid, callback) {
+    var cursor =db.collection(table).find({"session.authorized_users.user_uuid" : user_uuid});
+    cursor.each(function(err, doc) {
+        assert.equal(err, null);
+        if (doc != null) {
+            var jsonDoc = JSON.stringify(doc);
+            console.dir(jsonDoc);
+            console.log('\n PLEASE GOD WORK PLEASE\n' + doc.session.taken[0].item_uuid);
+            //Do stuff here
+        } else {
+            console.log('wat');
+            callback();
+        }
+    });
+};
 
 //Kills the Node
 app.post('/exit', function (req, res) {
