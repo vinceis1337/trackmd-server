@@ -84,8 +84,8 @@ var INVENTORY_DATA = [
 var PATIENT_DATA = {
     "patient": {
         "user_uuid": "12345678-fb14-11e0-b14d-d11c9798dbaf",
-        "first_name": "Ray",
-        "last_name": "Sunbo",
+        "first_name": "John",
+        "last_name": "Doe",
         "age": "30",
         "gender": "male",
         "rfid": "72f5ccec"
@@ -113,10 +113,7 @@ var SESSION_DATA = {
                 "user_uuid": "896b677f-fb14-11e0-b14d-d11ca798dbac"
             },
             {
-                "user_uuid": "asffdasd-fb14-11e0-b14d-d11ca798dbad"
-            },
-            {
-                "user_uuid": "sdfsdfsf-fb14-11e0-b14d-d11ca798dbae"
+                "user_uuid": "RONLOLOLL-fb14-11e0-b14d-d11ca798dbac"
             }
         ],
         "patient_users": [

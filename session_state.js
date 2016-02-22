@@ -1,9 +1,10 @@
-function SessionState(session, authorized_users, patients, taken, state) {
+function SessionState(session, authorized_users, patients, taken, taken_descriptions, state) {
 
     this.session = session;
     this.authorized_users = authorized_users;
     this.patient_users = patients;
     this.taken = taken;
+    this.taken_descriptions = taken_descriptions;
     this.state = state;
     //this.last_authorized_user = last_authorized_user;
 
@@ -23,7 +24,6 @@ SessionState.prototype.authorizedUserAction = function(user_uuid, callback){
         if (this.authorized_users[i] == user_uuid) {
             this.authorized_users.splice(i, 1);
             actionType = "out";
-            callback(actionType);
         }
     }
 
@@ -33,10 +33,11 @@ SessionState.prototype.authorizedUserAction = function(user_uuid, callback){
             this.state = "SESSION_TAKE";
         }
         actionType = "in";
-        callback(actionType);
     }
 
-    this._checkState();
+    this._checkState(function(error, takenArray) {
+        callback(actionType, error, takenArray);
+    });
 
     //this.last_authorized_user = user_uuid;
 
@@ -61,7 +62,6 @@ SessionState.prototype.patientUserAction = function(user_uuid, callback){
         if (this.patient_users[i] == user_uuid) {
             this.patient_users.splice(i, 1);
             actionType = "out";
-            callback(actionType);
         }
     }
 
@@ -71,13 +71,14 @@ SessionState.prototype.patientUserAction = function(user_uuid, callback){
             this.state = "SESSION_TAKE";
         }
         actionType = "in";
-        callback(actionType);
     }
 
-    this._checkState();
+    this._checkState(function(error, takenArray) {
+        callback(actionType, error, takenArray);
+    });
 };
 
-SessionState.prototype.itemAction = function(item_uuid, callback){
+SessionState.prototype.itemAction = function(item_uuid, item_description, callback){
     if(!this.session){
         console.log("error no session");
         return;}
@@ -90,18 +91,20 @@ SessionState.prototype.itemAction = function(item_uuid, callback){
     for (var i = 0; i < this.taken.length; i++) {
         if (this.taken[i] == item_uuid) {
             this.taken.splice(i, 1);
+            this.taken_descriptions.splice(i, 1);
             actionType = "out";
-            callback(actionType);
+            callback(actionType, false, null);
         }
     }
 
     if (!actionType) {
         this.taken.push(item_uuid);
+        this.taken_descriptions.push(item_description);
         if (this.state == "SESSION_IDLE") {
             this.state = "SESSION_TAKE";
         }
         actionType = "in";
-        callback(actionType);
+        callback(actionType, false, null);
     }
 
     //session.actions_log.push(
@@ -175,11 +178,22 @@ SessionState.prototype.itemAction = function(item_uuid, callback){
     //}
 //};
 
-SessionState.prototype._checkState = function() {
+SessionState.prototype._checkState = function(callback) {
     console.log("Pre-check state: " + this.state);
+    console.log("Auth Users Len " + this.session.authorized_users.length);
+    console.log("Patient Users Len " + this.session.patient_users.length);
     if (this.state == this.SESSION_LIVE) {
+        console.log("Session Enrolled Auths: " + this.authorized_users.length);
+        console.log("Session Enrolled Patients: " + this.authorized_users.length);
         if ((this.authorized_users.length == 0) && (this.patient_users.length == 0)) {
-            this.state = this.SESSION_IDLE;
+            if (this.taken.length > 0) {
+                console.log("Detected Retained Items.");
+                callback(true, this.taken_descriptions);
+            }
+            else {
+                this.state = this.SESSION_IDLE;
+                callback(false, null);
+            }
         }
     }
     //Must be IDLE or TAKE
@@ -191,13 +205,17 @@ SessionState.prototype._checkState = function() {
             if (this.authorized_users.length == this.session.authorized_users.length) {
                 if (this.patient_users.length == this.session.patient_users.length) {
                     this.state = this.SESSION_LIVE;
+                    callback(false, null);
                 }
                 else {
                     this.state = this.SESSION_TAKE;
+                    callback(false, null);
                 }
             }
         }
     }
+
+    callback(false, null);
 
     console.log("After checking state, the state is: " + this.state);
 };

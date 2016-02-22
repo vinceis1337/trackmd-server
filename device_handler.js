@@ -44,7 +44,7 @@ MongoClient.connect(url, function (err, db) {
     database_util.findAllDocumentsByTable(db, SESSION_TABLE, function (data) {
         if (!session_state) {
             console.log("New Session State Initialized");
-            session_state = new SessionState(null, [], [], [], SESSION_IDLE);
+            session_state = new SessionState(null, [], [], [], [], SESSION_IDLE);
             session_state.session = data.session;
         }
         console.log('\n POST THING\n' + JSON.stringify(session_state.session));
@@ -75,7 +75,7 @@ app.post('/rfid', function (req, res) {
                     res.json(message);
                 }
                 else {
-                    session_state.authorizedUserAction(data.authorized_user.user_uuid, function (actionType) {
+                    session_state.authorizedUserAction(data.authorized_user.user_uuid, function (actionType, error, takenArray) {
                         var message = {message: ['Successful Sign ' + actionType, 'Hello ' + data.authorized_user.first_name + ' ' + data.authorized_user.last_name]};
                         console.log("Sending to LCD: " + JSON.stringify(message));
                         res.json(message);
@@ -99,7 +99,7 @@ app.post('/rfid', function (req, res) {
                                 }
                                 else {
 
-                                    session_state.itemAction(data.item.item_uuid, function(actionType) {
+                                    session_state.itemAction(data.item.item_uuid, data.item.description, function(actionType) {
                                         var message = {message: ['Item Successfully Taken ' + actionType, data.item.description]};
                                         console.log("Sending to LCD: " + JSON.stringify(message));
                                         res.json(message);
@@ -110,10 +110,17 @@ app.post('/rfid', function (req, res) {
                             });
                         }
                         else {
-                            session_state.patientUserAction(data.patient.user_uuid, function (actionType) {
-                                var message = {message: ['Successful Sign ' + actionType, 'Hello ' + data.patient.first_name + ' ' + data.patient.last_name]};
-                                console.log("Sending to LCD: " + JSON.stringify(message));
-                                res.json(message);
+                            session_state.patientUserAction(data.patient.user_uuid, function (actionType, error, takenArray) {
+                                if (!error) {
+                                    var message = {message: ['Successful Sign ' + actionType, 'Hello ' + data.patient.first_name + ' ' + data.patient.last_name]};
+                                    console.log("Sending to LCD: " + JSON.stringify(message));
+                                    res.json(message);
+                                }
+                                else {
+                                    var message = {message: ['WARNING ITEMS LEFT BEHIND', 'RFIDs Detected: ' + takenArray]};
+                                    console.log("Sending to LCD: " + JSON.stringify(message));
+                                    res.json(message);
+                                }
                             });
                             console.log('\n POST THING\n' + JSON.stringify(data));
                             closeFinally(db);
@@ -121,10 +128,17 @@ app.post('/rfid', function (req, res) {
                     });
                 }
                 else {
-                    session_state.authorizedUserAction(data.authorized_user.user_uuid, function (actionType) {
-                        var message = {message: ['Successful Sign ' + actionType, 'Hello ' + data.authorized_user.first_name + ' ' + data.authorized_user.last_name]};
-                        console.log("Sending to LCD: " + JSON.stringify(message));
-                        res.json(message);
+                    session_state.authorizedUserAction(data.authorized_user.user_uuid, function (actionType, error, takenArray) {
+                        if (!error) {
+                            var message = {message: ['Successful Sign ' + actionType, 'Hello ' + data.authorized_user.first_name + ' ' + data.authorized_user.last_name]};
+                            console.log("Sending to LCD: " + JSON.stringify(message));
+                            res.json(message);
+                        }
+                        else {
+                            var message = {message: ['WARNING ITEMS LEFT BEHIND', 'Detected: ' + takenArray]};
+                            console.log("Sending to LCD: " + JSON.stringify(message));
+                            res.json(message);
+                        }
                     });
                     closeFinally(db);
                 }
